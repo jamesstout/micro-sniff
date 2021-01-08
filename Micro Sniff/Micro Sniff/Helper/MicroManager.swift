@@ -13,7 +13,7 @@ class MicroManager {
     static let sharedInstance = MicroManager()
     private init(){}
     
-    var microDidRunningSomeWhere: ((_ isRunning: Bool,_ title: String) -> ())?
+    var microDidRunningSomeWhere: ((_ isRunning: Bool,_ title: String, _ device: AudioDevice) -> ())?
     
 
     func regisAudioNotification() {
@@ -39,8 +39,16 @@ extension MicroManager: EventSubscriber {
                 let microDidRunningSomeWhere = self.microDidRunningSomeWhere
                 else {return}
             
-            microDidRunningSomeWhere(audioDevice.isRunningSomewhere(), audioDevice.name)
-        
+            microDidRunningSomeWhere(audioDevice.isRunningSomewhere(), audioDevice.name, audioDevice)
+
+            case .muteDidChange(audioDevice: let audioDevice, channel: _, direction: _):
+            guard
+                audioDevice.isInputOnlyDevice(),
+                let microDidRunningSomeWhere = self.microDidRunningSomeWhere
+                else {return}
+            log("muteDidChange")
+
+            microDidRunningSomeWhere(audioDevice.isRunningSomewhere(), audioDevice.name, audioDevice)
         default: break
         }
     }

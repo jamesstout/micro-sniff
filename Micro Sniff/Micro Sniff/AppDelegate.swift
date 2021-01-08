@@ -34,6 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.register(defaults: [
             UserDefaults.Key.dockIconState: DockIconState.hide.rawValue,
             UserDefaults.Key.startAtLogin: false,
+            UserDefaults.Key.dontShowWhenMuted: false,
             UserDefaults.Key.showPreferencesOnLaunch: true
         ])
     }

@@ -13,6 +13,7 @@ extension UserDefaults {
         static let startAtLogin = "startAtLogin"
         static let dockIconState = "dockIconState"
         static let showPreferencesOnLaunch = "showPreferencesOnLaunch"
+        static let dontShowWhenMuted = "dontShowWhenMuted"
     }
 }
 
@@ -51,6 +52,16 @@ enum Preference {
         
         set {
             UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.showPreferencesOnLaunch)
+        }
+    }
+
+    static var dontShowWhenMuted: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: UserDefaults.Key.dontShowWhenMuted)
+        }
+
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaults.Key.dontShowWhenMuted)
         }
     }
 }

@@ -13,6 +13,8 @@ import Cocoa
 class StatusBarController {
     private let menuStatusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     var window: MicroWindow? = nil
+
+    private let mutePrefChanged = Notification.Name("mutePrefChanged")
     
     lazy var preferencesWindowController = PreferencesWindowController(
         preferencePanes: [
@@ -26,27 +28,64 @@ class StatusBarController {
     init() {
         MicroManager.sharedInstance.regisAudioNotification()
         setupView()
+        DistributedNotificationCenter.default().addObserver(self,
+                                                            selector: #selector(self.setupView),
+                                                            name: mutePrefChanged,
+                                                            object: nil)
     }
     
-    private func setupView() {
+    @objc public func setupView() {
         if let button = menuStatusItem.button {
             button.image = #imageLiteral(resourceName: "ico_statusbar")
         }
         menuStatusItem.menu = self.getContextMenu()
-        
+
+        var isMuted : Bool = false
+
         if let mic = AudioDevice.allInputDevices().first(where: {$0.isRunningSomewhere()}) {
-            createAndShowWindow(micTitle: mic.name)
+
+            if Preference.dontShowWhenMuted {
+                isMuted = isMicMuted(mic: mic)
+            }
+
+            if isMuted == false {
+                createAndShowWindow(micTitle: mic.name)
+            }
+            else {
+                self.removeWindow()
+            }
         }
         
-        MicroManager.sharedInstance.microDidRunningSomeWhere = {[weak self] (isRunning, title) in
+        MicroManager.sharedInstance.microDidRunningSomeWhere = {[weak self] (isRunning, title, device) in
             if isRunning {
-                self?.createAndShowWindow(micTitle: title)
+                if Preference.dontShowWhenMuted {
+                    isMuted = self!.isMicMuted(mic: device)
+                }
+                if isMuted == false {
+                    self?.createAndShowWindow(micTitle: title)
+                }
+                else {
+                    self?.removeWindow()
+                }
             } else {
                 self?.removeWindow()
             }
         }
     }
-    
+
+    private func isMicMuted(mic: AudioDevice) -> Bool {
+
+        for i in 0..<mic.channels(direction: .recording) {
+            log("i: (\(i)).")
+            if let tmpIsMuted = mic.isMuted(channel: i, direction: .recording){
+                log("isMuted: (\(tmpIsMuted)).")
+                return tmpIsMuted
+            }
+        }
+
+        return false
+    }
+
     private func createAndShowWindow(micTitle: String) {
         if window == nil {
             window = MicroWindow.initForMainScreen()

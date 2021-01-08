@@ -13,12 +13,14 @@ final class GeneralPreferenceViewController: NSViewController, PreferencePane {
     let preferencePaneIdentifier = PreferencePane.Identifier.general
     let preferencePaneTitle = "General"
     let toolbarItemIcon = NSImage(named: NSImage.preferencesGeneralName)!
-    
+    private let mutePrefChanged = Notification.Name("mutePrefChanged")
+
     override var nibName: NSNib.Name? { "GeneralPreferenceViewController" }
     
     @IBOutlet weak var checkboxStartAtLogin: NSButton!
     @IBOutlet weak var checkboxKeepIconInDock: NSButton!
     @IBOutlet weak var checkboxShowPreferencesOnLaunch: NSButton!
+    @IBOutlet weak var checkboxDontShowWhenMuted: NSButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,6 +32,7 @@ final class GeneralPreferenceViewController: NSViewController, PreferencePane {
         checkboxStartAtLogin.state = Preference.startAtLogin ? .on : .off
         checkboxKeepIconInDock.state = Preference.dockIconState ==  .show ? .on : .off
         checkboxShowPreferencesOnLaunch.state = Preference.showPreferencesOnlaunch ? .on : .off
+        checkboxDontShowWhenMuted.state = Preference.dontShowWhenMuted ? .on : .off
     }
     
     @IBAction func toggleStartAtLogin(_ sender: NSButton) {
@@ -63,5 +66,18 @@ final class GeneralPreferenceViewController: NSViewController, PreferencePane {
         default:
             break
         }
+    }
+
+    @IBAction func toggleDontShowWhenMuted(_ sender: NSButton) {
+        switch sender.state {
+        case .on:
+            Preference.dontShowWhenMuted = true
+        case .off:
+            Preference.dontShowWhenMuted = false
+        default:
+            break
+        }
+
+        DistributedNotificationCenter.default().post(name: NSNotification.Name(rawValue: mutePrefChanged.rawValue), object: nil)
     }
 }
